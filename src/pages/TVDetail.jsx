@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { tmdbService, getImageUrl } from '../services/tmdb';
 import Carousel from '../components/Carousel';
 import { DetailSkeleton } from '../components/Skeleton';
-import { Star, Play, Plus, Check, Clock, Calendar, Heart, Share2, User as UserIcon, MessageSquare, ChevronDown, CheckCircle } from 'lucide-react';
+import { Star, Play, Plus, Check, Clock, Calendar, Heart, Share2, User as UserIcon, MessageSquare, ChevronDown, CheckCircle, Maximize, Minimize } from 'lucide-react';
 
 const getLangFlag = (lang) => {
   const flags = {
@@ -46,8 +46,43 @@ export default function TVDetail() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [streamSource, setStreamSource] = useState('vidking');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const playerRef = useRef(null);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await playerRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error("Fullscreen error:", err);
+    }
+  };
+
+  useEffect(() => {
+    const handleFSChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFSChange);
+    return () => document.removeEventListener('fullscreenchange', handleFSChange);
+  }, []);
+
+  const sourceMeta = {
+    vidking: { btn: 'VIDKING.NET (Primary)', label: 'VidKing.net Embed', short: 'VidKing', url: (id, s, e) => `https://www.vidking.net/embed/tv/${id}/${s}/${e}` },
+    vidsrc: { btn: 'VIDSRC.ME (Backup 1)', label: 'VidSrc.me Embed', short: 'VidSrc', url: (id, s, e) => `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    embedsu: { btn: 'EMBED.SU (Backup 2)', label: 'Embed.su Backup', short: 'EmbedSU', url: (id, s, e) => `https://embed.su/embed/tv/${id}/${s}/${e}` },
+    vidlink: { btn: 'VIDLINK.PRO (Backup 3)', label: 'VidLink.pro Embed', short: 'VidLink', url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },
+    '2embed': { btn: '2EMBED.CC (Backup 4)', label: '2Embed.cc Embed', short: '2Embed', url: (id, s, e) => `https://2embed.cc/embed/tv/${id}&s=${s}&e=${e}` },
+    vidsrccc: { btn: 'VIDSRC.CC (Backup 5)', label: 'VidSrc.cc Embed', short: 'VidSrc.cc', url: (id, s, e) => `https://vidsrc.cc/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    ezvidapi: { btn: 'EZVIDAPI.COM', label: 'EzVidApi.com Embed', short: 'EzVidApi', url: (id, s, e) => `https://ezvidapi.com/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    autoembed: { btn: 'AUTOEMBED.CO', label: 'AutoEmbed.co Embed', short: 'AutoEmbed', url: (id, s, e) => `https://autoembed.co/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    moviesapi: { btn: 'MOVIESAPI.TO', label: 'MoviesApi.to Embed', short: 'MoviesApi', url: (id, s, e) => `https://moviesapi.to/embed/tv/${id}/${s}/${e}` },
+    vidfast: { btn: 'VIDFAST.PRO', label: 'VidFast.pro Embed', short: 'VidFast', url: (id, s, e) => `https://vidfast.pro/embed/tv/${id}/${s}/${e}` },
+    embedfilmu: { btn: 'EMBED.FILMU.IN', label: 'FilmU.in Embed', short: 'FilmU', url: (id, s, e) => `https://embed.filmu.in/embed/tv/${id}/${s}/${e}` },
+    cinesrc: { btn: 'CINESRC.ST', label: 'CineSrc.st Embed', short: 'CineSrc', url: (id, s, e) => `https://cinesrc.st/embed/tv/${id}/${s}/${e}` },
+    vidpop: { btn: 'VIDPOP.XYZ', label: 'VidPop.xyz Embed', short: 'VidPop', url: (id, s, e) => `https://vidpop.xyz/embed/tv/${id}/${s}/${e}` },
+  };
   const dropdownRef = useRef(null);
 
   // Close season dropdown on click outside
@@ -333,37 +368,20 @@ export default function TVDetail() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-gray-300 font-mono text-xs uppercase tracking-wider">Select Player Source:</span>
               </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => { setStreamSource('vidking'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'vidking' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  VIDKING.NET (Primary)
-                </button>
-                <button 
-                  onClick={() => { setStreamSource('vidsrc'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'vidsrc' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  VIDSRC.ME (Backup 1)
-                </button>
-                <button 
-                  onClick={() => { setStreamSource('embedsu'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'embedsu' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  EMBED.SU (Backup 2)
-                </button>
+              <div className="flex gap-2 flex-wrap">
+                {Object.entries(sourceMeta).map(([key, src]) => (
+                  <button 
+                    key={key}
+                    onClick={() => { setStreamSource(key); setIframeLoaded(false); }}
+                    className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
+                      streamSource === key 
+                        ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
+                        : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
+                    }`}
+                  >
+                    {src.btn}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -382,19 +400,13 @@ export default function TVDetail() {
                   <div className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center z-20 gap-4">
                     <div className="w-16 h-16 border-4 border-t-[#E50914] border-white/10 rounded-full animate-spin" />
                     <p className="text-gray-400 text-xs font-mono tracking-widest animate-pulse uppercase">
-                      BUFFING S{activeSeasonNum}E{activeEpNum} ON {streamSource === 'vidking' ? 'VidKing' : streamSource === 'vidsrc' ? 'VidSrc' : 'EmbedSU'}...
+                      BUFFING S{activeSeasonNum}E{activeEpNum} ON {sourceMeta[streamSource]?.short || 'Stream'}...
                     </p>
                   </div>
                 )}
                 
                 <iframe
-                  src={
-                    streamSource === 'vidking'
-                      ? `https://www.vidking.net/embed/tv/${show.id}/${activeSeasonNum}/${activeEpNum}`
-                      : streamSource === 'vidsrc'
-                      ? `https://vidsrc.me/embed/tv?tmdb=${show.id}&season=${activeSeasonNum}&episode=${activeEpNum}`
-                      : `https://embed.su/embed/tv/${show.id}/${activeSeasonNum}/${activeEpNum}`
-                  }
+                  src={sourceMeta[streamSource]?.url(show.id, activeSeasonNum, activeEpNum)}
                   title={`NexFlix TV Player: ${show.name} S${activeSeasonNum}E${activeEpNum}`}
                   className="w-full h-full border-0 absolute inset-0 z-10"
                   allowFullScreen
@@ -406,10 +418,15 @@ export default function TVDetail() {
               </div>
               
               <div className="p-4 bg-[#111117] border-t border-white/5 flex items-center justify-between text-xs text-gray-400 font-mono">
-                <span className="text-white truncate">Playing: **{activeEpTitle || `Episode ${activeEpNum}`}** (**{streamSource === 'vidking' ? 'VidKing.net Embed' : streamSource === 'vidsrc' ? 'VidSrc.me Embed' : 'Embed.su Backup'}**)</span>
-                <span className="text-[#F5C518] flex items-center gap-1 animate-pulse shrink-0">
-                  ● SYNCED S{activeSeasonNum}E{activeEpNum}
-                </span>
+                <span className="text-white truncate">Playing: **{activeEpTitle || `Episode ${activeEpNum}`}** (**{sourceMeta[streamSource]?.label || 'Unknown'}**)</span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <button onClick={toggleFullscreen} className="hover:text-white transition-colors cursor-pointer" title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
+                    {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                  </button>
+                  <span className="text-[#F5C518] flex items-center gap-1 animate-pulse">
+                    ● SYNCED S{activeSeasonNum}E{activeEpNum}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

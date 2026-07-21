@@ -47,8 +47,43 @@ export default function MovieDetail() {
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [streamSource, setStreamSource] = useState('vidking');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const playerRef = useRef(null);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await playerRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error("Fullscreen error:", err);
+    }
+  };
+
+  useEffect(() => {
+    const handleFSChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFSChange);
+    return () => document.removeEventListener('fullscreenchange', handleFSChange);
+  }, []);
+
+  const sourceMeta = {
+    vidking: { btn: 'VIDKING.NET (Primary)', label: 'VidKing.net Embed', short: 'VidKing', movie: (id) => `https://www.vidking.net/embed/movie/${id}`, tv: null },
+    vidsrc: { btn: 'VIDSRC.ME (Backup 1)', label: 'VidSrc.me Embed', short: 'VidSrc', movie: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}`, tv: null },
+    embedsu: { btn: 'EMBED.SU (Backup 2)', label: 'Embed.su Backup', short: 'EmbedSU', movie: (id) => `https://embed.su/embed/movie/${id}`, tv: null },
+    vidlink: { btn: 'VIDLINK.PRO (Backup 3)', label: 'VidLink.pro Embed', short: 'VidLink', movie: (id) => `https://vidlink.pro/movie/${id}`, tv: null },
+    '2embed': { btn: '2EMBED.CC (Backup 4)', label: '2Embed.cc Embed', short: '2Embed', movie: (id) => `https://2embed.cc/embed/movie/${id}`, tv: null },
+    vidsrccc: { btn: 'VIDSRC.CC (Backup 5)', label: 'VidSrc.cc Embed', short: 'VidSrc.cc', movie: (id) => `https://vidsrc.cc/embed/movie?tmdb=${id}`, tv: null },
+    ezvidapi: { btn: 'EZVIDAPI.COM', label: 'EzVidApi.com Embed', short: 'EzVidApi', movie: (id) => `https://ezvidapi.com/embed/movie?tmdb=${id}`, tv: null },
+    autoembed: { btn: 'AUTOEMBED.CO', label: 'AutoEmbed.co Embed', short: 'AutoEmbed', movie: (id) => `https://autoembed.co/embed/movie?tmdb=${id}`, tv: null },
+    moviesapi: { btn: 'MOVIESAPI.TO', label: 'MoviesApi.to Embed', short: 'MoviesApi', movie: (id) => `https://moviesapi.to/embed/movie/${id}`, tv: null },
+    vidfast: { btn: 'VIDFAST.PRO', label: 'VidFast.pro Embed', short: 'VidFast', movie: (id) => `https://vidfast.pro/embed/movie/${id}`, tv: null },
+    embedfilmu: { btn: 'EMBED.FILMU.IN', label: 'FilmU.in Embed', short: 'FilmU', movie: (id) => `https://embed.filmu.in/embed/movie/${id}`, tv: null },
+    cinesrc: { btn: 'CINESRC.ST', label: 'CineSrc.st Embed', short: 'CineSrc', movie: (id) => `https://cinesrc.st/embed/movie/${id}`, tv: null },
+    vidpop: { btn: 'VIDPOP.XYZ', label: 'VidPop.xyz Embed', short: 'VidPop', movie: (id) => `https://vidpop.xyz/embed/movie/${id}`, tv: null },
+  };
 
   // Fetch Movie Data
   useEffect(() => {
@@ -284,37 +319,20 @@ export default function MovieDetail() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-gray-300 font-mono text-xs uppercase tracking-wider">Select Player Source:</span>
               </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => { setStreamSource('vidking'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'vidking' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  VIDKING.NET (Primary)
-                </button>
-                <button 
-                  onClick={() => { setStreamSource('vidsrc'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'vidsrc' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  VIDSRC.ME (Backup 1)
-                </button>
-                <button 
-                  onClick={() => { setStreamSource('embedsu'); setIframeLoaded(false); }}
-                  className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                    streamSource === 'embedsu' 
-                      ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
-                      : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
-                  }`}
-                >
-                  EMBED.SU (Backup 2)
-                </button>
+              <div className="flex gap-2 flex-wrap">
+                {Object.entries(sourceMeta).map(([key, src]) => (
+                  <button 
+                    key={key}
+                    onClick={() => { setStreamSource(key); setIframeLoaded(false); }}
+                    className={`font-mono text-xs px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
+                      streamSource === key 
+                        ? 'bg-[#E50914] text-white glow-red font-bold shadow-lg' 
+                        : 'text-gray-400 hover:text-white bg-[#111117]/50 border border-white/5 hover:bg-[#111117]'
+                    }`}
+                  >
+                    {src.btn}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -332,19 +350,13 @@ export default function MovieDetail() {
                   <div className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center z-20 gap-4">
                     <div className="w-16 h-16 border-4 border-t-[#E50914] border-white/10 rounded-full animate-spin" />
                     <p className="text-gray-400 text-xs font-mono tracking-widest animate-pulse uppercase">
-                      Initializing {streamSource === 'vidking' ? 'VidKing' : streamSource === 'vidsrc' ? 'VidSrc' : 'EmbedSU'} Engine...
+                      Initializing {sourceMeta[streamSource]?.short || 'Stream'} Engine...
                     </p>
                   </div>
                 )}
                 
                 <iframe
-                  src={
-                    streamSource === 'vidking'
-                      ? `https://www.vidking.net/embed/movie/${movie.id}`
-                      : streamSource === 'vidsrc'
-                      ? `https://vidsrc.me/embed/movie?tmdb=${movie.id}`
-                      : `https://embed.su/embed/movie/${movie.id}`
-                  }
+                  src={sourceMeta[streamSource]?.movie(movie.id)}
                   title={`NexFlix Player: ${movie.title}`}
                   className="w-full h-full border-0 absolute inset-0 z-10"
                   allowFullScreen
@@ -356,10 +368,15 @@ export default function MovieDetail() {
               </div>
               
               <div className="p-4 bg-[#111117] border-t border-white/5 flex items-center justify-between text-xs text-gray-400 font-mono">
-                <span>Streaming source: **{streamSource === 'vidking' ? 'VidKing.net Embed' : streamSource === 'vidsrc' ? 'VidSrc.me Embed' : 'Embed.su Backup'}**</span>
-                <span className="text-[#F5C518] flex items-center gap-1 animate-pulse">
-                  ● LIVE STREAM SYNCED
-                </span>
+                <span>Streaming source: **{sourceMeta[streamSource]?.label || 'Unknown'}**</span>
+                <div className="flex items-center gap-3">
+                  <button onClick={toggleFullscreen} className="hover:text-white transition-colors cursor-pointer" title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
+                    {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                  </button>
+                  <span className="text-[#F5C518] flex items-center gap-1 animate-pulse">
+                    ● LIVE STREAM SYNCED
+                  </span>
+                </div>
               </div>
             </div>
           </div>
