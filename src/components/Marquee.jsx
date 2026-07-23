@@ -1,18 +1,20 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function Marquee({ items = [], speed = 40 }) {
-  const doubled = [...items, ...items];
-
   if (items.length === 0) return null;
+
+  const duration = items.length * speed;
 
   return (
     <div className="relative overflow-hidden py-6 w-full">
       <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-transparent to-[#0A0A0F] z-10 pointer-events-none" />
-      <div className="flex gap-6" style={{
-        animation: `marquee-scroll ${items.length * speed}s linear infinite`
-      }}>
-        {doubled.map((item, idx) => (
+      <motion.div
+        className="flex gap-6"
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ repeat: Infinity, duration, ease: 'linear' }}
+      >
+        {[...items, ...items].map((item, idx) => (
           <div
             key={`${item.id}-${idx}`}
             className="shrink-0 w-[140px] aspect-[2/3] rounded-xl overflow-hidden border border-white/5 relative group cursor-pointer"
@@ -31,7 +33,7 @@ export default function Marquee({ items = [], speed = 40 }) {
             </div>
           </div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
