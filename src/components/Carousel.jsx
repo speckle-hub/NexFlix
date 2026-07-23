@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
 import { CardSkeleton } from './Skeleton';
@@ -69,7 +70,13 @@ export default function Carousel({ title, items = [], isLoading = false }) {
   }, [showLeftArrow, showRightArrow]);
 
   return (
-    <div className="relative group/carousel my-8 px-6 md:px-12 max-w-7xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="relative group/carousel my-8 px-6 md:px-12 max-w-7xl mx-auto"
+    >
       {title && (
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <h3 className="text-white font-display text-2xl tracking-wider uppercase flex items-center gap-2">
@@ -124,6 +131,6 @@ export default function Carousel({ title, items = [], isLoading = false }) {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

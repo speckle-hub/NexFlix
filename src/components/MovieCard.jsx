@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Play, Calendar, Film, Tv } from 'lucide-react';
@@ -11,6 +11,22 @@ export default function MovieCard({ item }) {
   const rating = item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : 'N/A';
   const linkPath = isMovie ? `/movie/${item.id}` : `/tv/${item.id}`;
 
+  const cardRef = useRef(null);
+  const [spotlight, setSpotlight] = useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e) => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setSpotlight({ x, y });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setSpotlight({ x: 50, y: 50 });
+  };
+
   const getGlowStyle = () => {
     if (rating >= 8.2) return 'hover:shadow-[0_0_20px_rgba(245,197,24,0.3)] hover:border-[#F5C518]/30';
     if (item.live || item.newRelease) return 'hover:shadow-[0_0_20px_rgba(229,9,20,0.3)] hover:border-[#E50914]/30';
@@ -20,10 +36,20 @@ export default function MovieCard({ item }) {
   return (
     <Link to={linkPath} className="block group">
       <motion.div 
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         whileHover={{ scale: 1.05, y: -5 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className={`relative aspect-[2/3] w-full min-w-[150px] sm:min-w-[190px] md:min-w-[220px] rounded-2xl overflow-hidden border border-white/5 shadow-lg shimmer-card transition-all duration-300 ${getGlowStyle()}`}
       >
+        {/* Spotlight overlay */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at ${spotlight.x}% ${spotlight.y}%, rgba(229,9,20,0.25) 0%, transparent 70%)`
+          }}
+        />
         
         <div className="absolute inset-0 img-blur z-0" />
         <img 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Film, Check, Play, Trash2, Award, Zap } from 'lucide-react';
+import AnimatedCounter from '../components/AnimatedCounter';
 import { motion } from 'framer-motion';
 
 const AVATAR_PRESETS = ['🍿', '🎬', '🚀', '🎭', '🥷', '👾', '🧙', '👑', '👽', '🦄'];
@@ -194,7 +195,9 @@ export default function Profile() {
               </div>
               <div>
                 <span className="text-[10px] text-gray-500 font-mono block uppercase">Titles Watched</span>
-                <span className="text-white text-3xl font-display font-extrabold tracking-wider">{watchHistory.length}</span>
+                <span className="text-white text-3xl font-display font-extrabold tracking-wider">
+                  <AnimatedCounter value={watchHistory.length} />
+                </span>
               </div>
             </div>
 
@@ -205,7 +208,9 @@ export default function Profile() {
               </div>
               <div>
                 <span className="text-[10px] text-gray-500 font-mono block uppercase">Hours Streamed</span>
-                <span className="text-white text-3xl font-display font-extrabold tracking-wider">{profile.hoursStreamed} h</span>
+                <span className="text-white text-3xl font-display font-extrabold tracking-wider">
+                  <AnimatedCounter value={profile.hoursStreamed} suffix=" h" />
+                </span>
               </div>
             </div>
 

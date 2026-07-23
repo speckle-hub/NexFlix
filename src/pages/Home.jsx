@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { tmdbService } from '../services/tmdb';
 import Carousel from '../components/Carousel';
+import Marquee from '../components/Marquee';
 import { HeroSkeleton } from '../components/Skeleton';
-import { Play, Plus, Check, Star, TrendingUp, Tv, Sparkles, Globe, Award, Shuffle } from 'lucide-react';
+import { Play, Plus, Check, Star, Shuffle } from 'lucide-react';
 
 const FALLBACK_BACKDROP = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=1200';
 
@@ -237,6 +238,15 @@ export default function Home() {
         </motion.div>
         </AnimatePresence>
 
+      </div>
+
+      {/* Now Streaming Marquee */}
+      <div className="py-4 relative">
+        <div className="flex items-center gap-2 px-6 md:px-12 mb-2">
+          <span className="w-1.5 h-4 bg-[#E50914] rounded-full inline-block" />
+          <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest font-bold">Now Streaming</span>
+        </div>
+        <Marquee items={trending.slice(0, 12)} speed={35} />
       </div>
 
       {/* Continue Watching */}

@@ -74,7 +74,7 @@ export default function Navbar() {
           
           <Link to="/" className="flex items-center gap-2 group">
             <span className="text-[#E50914] font-extrabold text-4xl font-display tracking-tighter drop-shadow-[0_0_10px_rgba(229,9,20,0.4)] group-hover:scale-105 transition-all">N</span>
-            <span className="text-white font-bold text-2xl font-display tracking-widest group-hover:text-gray-200 transition-colors">exFlix</span>
+            <span className="text-white font-bold text-2xl font-display tracking-widest group-hover:shimmer-text transition-all">exFlix</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">

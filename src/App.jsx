@@ -5,6 +5,7 @@ import { AppProvider } from './context/AppContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastContainer from './components/Toast';
+import Particles from './components/Particles';
 
 // Route-level code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -65,7 +66,8 @@ const AnimatedLayout = () => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0A0A0F] text-white">
+    <div className="flex flex-col min-h-screen bg-[#0A0A0F] text-white relative">
+      <Particles count={30} />
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
 
       <Navbar />
