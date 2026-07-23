@@ -146,3 +146,78 @@ body {
 .font-mono {
   font-family: var(--font-mono);
 }
+
+/* Image blur placeholder */
+.img-blur {
+  background: linear-gradient(135deg, #111117 0%, #1a1a2e 50%, #111117 100%);
+  background-size: 400% 400%;
+  animation: shimmer-bg 3s ease-in-out infinite;
+}
+
+@keyframes shimmer-bg {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #E50914, #F5C518);
+  z-index: 9999;
+  transition: width 0.1s linear;
+}
+
+/* Animated nav underline */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #E50914;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1px;
+}
+.nav-underline:hover::after,
+.nav-underline.active::after {
+  width: 100%;
+}
+
+/* Surprise Me shuffle animation */
+@keyframes shuffle {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+.shuffle-animate {
+  animation: shuffle 0.5s ease-in-out;
+}
+
+/* Carousel numeric badge */
+.carousel-count {
+  background: rgba(229, 9, 20, 0.15);
+  border: 1px solid rgba(229, 9, 20, 0.25);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: #E50914;
+  font-weight: 700;
+}
+
+/* Toast animation overrides */
+.toast-enter {
+  animation: toast-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

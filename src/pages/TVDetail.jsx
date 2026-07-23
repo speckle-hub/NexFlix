@@ -4,18 +4,13 @@ import { useApp } from '../context/AppContext';
 import { tmdbService, getImageUrl } from '../services/tmdb';
 import Carousel from '../components/Carousel';
 import { DetailSkeleton } from '../components/Skeleton';
-import { Star, Play, Plus, Check, Clock, Calendar, Heart, Share2, User as UserIcon, MessageSquare, ChevronDown, CheckCircle, Maximize, Minimize } from 'lucide-react';
+import { showToast } from '../components/Toast';
+import { Star, Play, Plus, Check, Clock, Calendar, Share2, User as UserIcon, ChevronDown, CheckCircle, X, Maximize, Minimize } from 'lucide-react';
 
 const getLangFlag = (lang) => {
   const flags = {
-    en: '🇺🇸',
-    ja: '🇯🇵',
-    ko: '🇰🇷',
-    es: '🇪🇸',
-    fr: '🇫🇷',
-    de: '🇩🇪',
-    it: '🇮🇹',
-    zh: '🇨🇳'
+    en: '🇺🇸', ja: '🇯🇵', ko: '🇰🇷', es: '🇪🇸',
+    fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹', zh: '🇨🇳'
   };
   return flags[lang] || '🌐';
 };
@@ -31,17 +26,14 @@ export default function TVDetail() {
   const [videos, setVideos] = useState([]);
   const [reviews, setReviews] = useState([]);
   
-  // Episode Selector States
   const [seasons, setSeasons] = useState([]);
   const [activeSeasonNum, setActiveSeasonNum] = useState(1);
   const [episodes, setEpisodes] = useState([]);
   
-  // Active playing episode states
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeEpNum, setActiveEpNum] = useState(1);
   const [activeEpTitle, setActiveEpTitle] = useState('');
   
-  // Controls
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -49,6 +41,7 @@ export default function TVDetail() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const playerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const toggleFullscreen = async () => {
     try {
@@ -83,9 +76,7 @@ export default function TVDetail() {
     cinesrc: { btn: 'CINESRC.ST', label: 'CineSrc.st Embed', short: 'CineSrc', url: (id, s, e) => `https://cinesrc.st/embed/tv/${id}/${s}/${e}` },
     vidpop: { btn: 'VIDPOP.XYZ', label: 'VidPop.xyz Embed', short: 'VidPop', url: (id, s, e) => `https://vidpop.xyz/embed/tv/${id}/${s}/${e}` },
   };
-  const dropdownRef = useRef(null);
 
-  // Close season dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -96,7 +87,6 @@ export default function TVDetail() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch TV Show Info
   useEffect(() => {
     const fetchShowData = async () => {
       try {
@@ -108,7 +98,6 @@ export default function TVDetail() {
         setShow(showRes);
         setSeasons(showRes.seasons || []);
         
-        // Check if there is a previously watched episode for this show in history
         const savedHistory = watchHistory.find(h => h.id === parseInt(id) && h.type === 'tv');
         if (savedHistory) {
           setActiveSeasonNum(savedHistory.season || 1);
@@ -142,7 +131,6 @@ export default function TVDetail() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id, tmdbKey]);
 
-  // Fetch episodes dynamically when active season changes
   useEffect(() => {
     if (!show) return;
     const fetchEpisodes = async () => {
@@ -173,12 +161,10 @@ export default function TVDetail() {
   const backdropUrl = getImageUrl(show.backdrop_path, 'original');
   const posterUrl = getImageUrl(show.poster_path, 'w500');
 
-  // Crew Highlights
   const creator = show.created_by?.[0]?.name || credits.crew.find(c => c.job === 'Executive Producer')?.name || 'N/A';
   const writer = credits.crew.find(c => c.job === 'Writer' || c.job === 'Story Editor')?.name || 'N/A';
   const composer = credits.crew.find(c => c.job === 'Composer' || c.job === 'Original Music Composer')?.name || 'N/A';
 
-  // Last watched details
   const lastWatchedItem = watchHistory.find(h => h.id === show.id && h.type === 'tv');
 
   const handleEpisodePlay = (ep) => {
@@ -187,7 +173,6 @@ export default function TVDetail() {
     setIsPlaying(true);
     setIframeLoaded(false);
 
-    // Save streaming details to global watch history
     addToHistory(show, {
       season: activeSeasonNum,
       episode: ep.episode_number,
@@ -202,13 +187,14 @@ export default function TVDetail() {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert("🍿 Link copied to clipboard!");
+    showToast('Link copied to clipboard!', 'success');
   };
+
+  const fullscreenIcon = isFullscreen ? X : 'Maximize';
 
   return (
     <div className="bg-[#0A0A0F] pb-20 relative select-none">
       
-      {/* 1. Cinematic backdrop bleed */}
       <div className="absolute top-0 left-0 w-full h-[70vh] z-0 overflow-hidden">
         <div className="absolute inset-0 bg-[#0A0A0F]/65 z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,#0A0A0F_100%)] z-10" />
@@ -218,17 +204,14 @@ export default function TVDetail() {
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-20 pt-24 md:pt-36">
         
-        {/* 2. Info grid layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
           
-          {/* Poster column */}
           <div className="flex justify-center md:sticky md:top-28">
-            <div className="w-full max-w-[320px] aspect-[2/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80 shimmer-card">
+            <div className="w-full max-w-[320px] aspect-[2/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80 shimmer-card img-blur">
               <img src={posterUrl} alt={show.name} className="w-full h-full object-cover" />
             </div>
           </div>
 
-          {/* Info Details block */}
           <div className="md:col-span-2 flex flex-col gap-6 text-left">
             
             {show.tag && (
@@ -237,7 +220,6 @@ export default function TVDetail() {
               </span>
             )}
 
-            {/* Title / Resume badge */}
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-white text-4xl md:text-6xl font-display font-extrabold uppercase leading-tight drop-shadow-lg">
@@ -256,10 +238,9 @@ export default function TVDetail() {
               )}
             </div>
 
-            {/* Meta Row */}
             <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm font-mono text-gray-300 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-md max-w-max">
               <span className="text-[#F5C518] font-bold flex items-center gap-0.5 glow-gold">
-                ⭐ {rating}
+                <Star className="w-4 h-4 fill-[#F5C518]" /> {rating}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4 text-red-500" /> {show.seasons?.length} Seasons
@@ -268,14 +249,13 @@ export default function TVDetail() {
                 <Calendar className="w-4 h-4 text-red-500" /> {show.first_air_date?.split('-')[0]}
               </span>
               <span className="border border-white/20 px-1.5 py-0.5 rounded text-[10px]">
-                {show.adult ? '🔞 18+' : '🍿 PG'}
+                {show.adult ? 'R' : 'PG'}
               </span>
               <span className="flex items-center gap-1">
                 {getLangFlag(show.original_language)} <span className="uppercase text-gray-400">{show.original_language}</span>
               </span>
             </div>
 
-            {/* Synopsis */}
             <div>
               <h4 className="text-white font-mono text-xs uppercase tracking-wider text-red-500 font-bold mb-2">SYNOPSIS</h4>
               <p className="text-gray-300 text-sm md:text-base leading-relaxed">
@@ -283,10 +263,8 @@ export default function TVDetail() {
               </p>
             </div>
 
-            {/* Action buttons */}
             <div className="flex flex-wrap gap-4 mt-2">
               
-              {/* Play / Resume trigger */}
               <button 
                 onClick={() => {
                   const saved = watchHistory.find(h => h.id === show.id && h.type === 'tv');
@@ -309,7 +287,6 @@ export default function TVDetail() {
                 </span>
               </button>
 
-              {/* Toggle list */}
               <button 
                 onClick={() => toggleWatchlist(show)}
                 className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold p-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer backdrop-blur-md hover:border-white/30 transform hover:-translate-y-0.5"
@@ -318,7 +295,6 @@ export default function TVDetail() {
                 <span className="font-display tracking-wider text-sm">{isFav ? 'SAVED' : 'MY LIST'}</span>
               </button>
 
-              {/* Share */}
               <button 
                 onClick={handleShare}
                 className="bg-[#2a2a35]/40 hover:bg-[#2a2a35]/70 border border-white/5 text-gray-300 p-4 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer backdrop-blur-md"
@@ -329,7 +305,6 @@ export default function TVDetail() {
 
             </div>
 
-            {/* Creator details */}
             <div className="grid grid-cols-3 gap-4 border-t border-b border-white/5 py-4 my-2">
               <div>
                 <span className="text-[10px] text-gray-500 font-mono block uppercase">Creator</span>
@@ -345,7 +320,6 @@ export default function TVDetail() {
               </div>
             </div>
 
-            {/* Genres */}
             <div className="flex flex-wrap gap-2">
               {show.genres?.map((g, idx) => (
                 <span key={idx} className="glass-pill text-[10px] font-mono font-bold text-red-400 border-[#E50914]/20 px-3 py-1.5 rounded-full">
@@ -358,11 +332,9 @@ export default function TVDetail() {
 
         </div>
 
-        {/* 3. TV Show Stream Player Embed wrapper */}
         {isPlaying && (
           <div ref={playerRef} className="mt-16 flex flex-col gap-4 animate-scaleIn">
             
-            {/* Source Toggle Row */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -385,7 +357,6 @@ export default function TVDetail() {
               </div>
             </div>
 
-            {/* Main Player Frame */}
             <div className="border border-white/10 rounded-3xl overflow-hidden shadow-2xl bg-black relative">
               
               <div className="absolute top-4 left-6 z-30 pointer-events-none flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity duration-300 select-none">
@@ -400,7 +371,7 @@ export default function TVDetail() {
                   <div className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center z-20 gap-4">
                     <div className="w-16 h-16 border-4 border-t-[#E50914] border-white/10 rounded-full animate-spin" />
                     <p className="text-gray-400 text-xs font-mono tracking-widest animate-pulse uppercase">
-                      BUFFING S{activeSeasonNum}E{activeEpNum} ON {sourceMeta[streamSource]?.short || 'Stream'}...
+                      BUFFERING S{activeSeasonNum}E{activeEpNum} ON {sourceMeta[streamSource]?.short || 'Stream'}...
                     </p>
                   </div>
                 )}
@@ -418,13 +389,13 @@ export default function TVDetail() {
               </div>
               
               <div className="p-4 bg-[#111117] border-t border-white/5 flex items-center justify-between text-xs text-gray-400 font-mono">
-                <span className="text-white truncate">Playing: **{activeEpTitle || `Episode ${activeEpNum}`}** (**{sourceMeta[streamSource]?.label || 'Unknown'}**)</span>
+                <span className="text-white truncate">Playing: {activeEpTitle || `Episode ${activeEpNum}`} ({sourceMeta[streamSource]?.label || 'Unknown'})</span>
                 <div className="flex items-center gap-3 shrink-0">
                   <button onClick={toggleFullscreen} className="hover:text-white transition-colors cursor-pointer" title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
                     {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
                   </button>
                   <span className="text-[#F5C518] flex items-center gap-1 animate-pulse">
-                    ● SYNCED S{activeSeasonNum}E{activeEpNum}
+                    ● STREAM READY — S{activeSeasonNum}E{activeEpNum}
                   </span>
                 </div>
               </div>
@@ -432,16 +403,14 @@ export default function TVDetail() {
           </div>
         )}
 
-        {/* 4. Season & Episode Selector Suite */}
         <div className="mt-20 text-left">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4 mb-6">
             <h3 className="text-white font-display text-2xl tracking-wider uppercase flex items-center gap-2">
               <span className="w-1.5 h-6 bg-[#E50914] rounded-full inline-block" />
-              📺 EPISODE NAVIGATOR
+              EPISODE NAVIGATOR
             </h3>
 
-            {/* Season Selector Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -475,7 +444,6 @@ export default function TVDetail() {
             </div>
           </div>
 
-          {/* Episode Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {episodes.length === 0 ? (
               <p className="text-gray-500 text-sm font-mono col-span-full text-center py-10">Loading episodes array...</p>
@@ -493,8 +461,7 @@ export default function TVDetail() {
                     }`}
                   >
                     <div>
-                      {/* Image/Badge Still Container */}
-                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-[#111117] border border-white/5 relative mb-3">
+                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-[#111117] border border-white/5 relative mb-3 img-blur">
                         <img 
                           src={getImageUrl(ep.still_path || show.backdrop_path, 'w500')} 
                           alt={ep.name} 
@@ -505,7 +472,6 @@ export default function TVDetail() {
                         </span>
                       </div>
                       
-                      {/* Episode Info */}
                       <div className="flex items-start justify-between gap-1 mb-2">
                         <h4 className="text-white font-bold text-sm leading-tight line-clamp-1">{ep.name}</h4>
                         {ep.runtime && (
@@ -520,7 +486,7 @@ export default function TVDetail() {
                         ? 'bg-[#E50914] text-white hover:bg-[#b0070f]' 
                         : 'bg-white/5 text-gray-300 hover:bg-white/10'
                     }`}>
-                      {isEpWatched ? '🎬 WATCH AGAIN' : '▶ WATCH NOW'}
+                      {isEpWatched ? 'WATCH AGAIN' : 'WATCH NOW'}
                     </button>
                   </div>
                 );
@@ -530,12 +496,11 @@ export default function TVDetail() {
 
         </div>
 
-        {/* 5. Cast Avatars */}
         {credits.cast && credits.cast.length > 0 && (
           <div className="mt-20 text-left">
             <h3 className="text-white font-display text-2xl tracking-wider mb-6 uppercase flex items-center gap-2">
               <span className="w-1.5 h-6 bg-[#E50914] rounded-full inline-block" />
-              🎭 STAR CAST
+              STAR CAST
             </h3>
             
             <div className="flex gap-6 overflow-x-auto scrollbar-hide py-2">
@@ -565,10 +530,9 @@ export default function TVDetail() {
 
       </div>
 
-      {/* 6. Similar TV Shows Carousel */}
       {similar && similar.length > 0 && (
         <div className="mt-16">
-          <Carousel title="📺 SIMILAR RECOMMENDATIONS" items={similar} />
+          <Carousel title="SIMILAR RECOMMENDATIONS" items={similar} />
         </div>
       )}
 

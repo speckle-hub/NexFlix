@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Clock, Film, Heart, Sparkles, Check, Play, Trash2, Award, Zap } from 'lucide-react';
+import { Clock, Film, Check, Play, Trash2, Award, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AVATAR_PRESETS = ['🍿', '🎬', '🚀', '🎭', '🥷', '👾', '🧙', '👑', '👽', '🦄'];
@@ -138,7 +138,9 @@ export default function Profile() {
             ) : (
               <div className="w-full">
                 <h3 className="text-white text-xl font-bold uppercase font-display tracking-widest">{profile.username}</h3>
-                <span className="text-[10px] text-gray-500 font-mono block mt-1 uppercase">NexFlix Pro Member</span>
+                <span className={`text-[10px] font-mono block mt-1 uppercase ${watchHistory.length >= 5 ? 'text-[#F5C518]' : 'text-gray-500'}`}>
+                  {watchHistory.length >= 5 ? 'NexFlix Pro Member' : `${5 - watchHistory.length} more streams to unlock Pro`}
+                </span>
                 
                 <button
                   onClick={() => setEditing(true)}

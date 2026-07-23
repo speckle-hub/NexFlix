@@ -4,9 +4,9 @@ import { useApp } from '../context/AppContext';
 import { tmdbService, getImageUrl } from '../services/tmdb';
 import Carousel from '../components/Carousel';
 import { DetailSkeleton } from '../components/Skeleton';
-import { Star, Play, Plus, Check, Clock, Calendar, Heart, Share2, User as UserIcon, MessageSquare, ExternalLink, Minimize, Maximize } from 'lucide-react';
+import { showToast } from '../components/Toast';
+import { Star, Play, Plus, Check, Clock, Calendar, Share2, User as UserIcon, X, Maximize, Minimize } from 'lucide-react';
 
-// Format minutes to "2h 18m" format
 const formatRuntime = (minutes) => {
   if (!minutes) return 'N/A';
   const hrs = Math.floor(minutes / 60);
@@ -14,18 +14,10 @@ const formatRuntime = (minutes) => {
   return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 };
 
-// Map languages to flags
 const getLangFlag = (lang) => {
   const flags = {
-    en: '🇺🇸',
-    ja: '🇯🇵',
-    ko: '🇰🇷',
-    es: '🇪🇸',
-    fr: '🇫🇷',
-    de: '🇩🇪',
-    it: '🇮🇹',
-    zh: '🇨🇳',
-    hi: '🇮🇳'
+    en: '🇺🇸', ja: '🇯🇵', ko: '🇰🇷', es: '🇪🇸',
+    fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹', zh: '🇨🇳', hi: '🇮🇳'
   };
   return flags[lang] || '🌐';
 };
@@ -41,7 +33,6 @@ export default function MovieDetail() {
   const [videos, setVideos] = useState([]);
   const [reviews, setReviews] = useState([]);
   
-  // Controls
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
@@ -85,7 +76,6 @@ export default function MovieDetail() {
     vidpop: { btn: 'VIDPOP.XYZ', label: 'VidPop.xyz Embed', short: 'VidPop', movie: (id) => `https://vidpop.xyz/embed/movie/${id}`, tv: null },
   };
 
-  // Fetch Movie Data
   useEffect(() => {
     const fetchMovieData = async () => {
       try {
@@ -135,12 +125,10 @@ export default function MovieDetail() {
   const backdropUrl = getImageUrl(movie.backdrop_path, 'original');
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
 
-  // Filter Crew highlights
   const director = credits.crew.find(c => c.job === 'Director')?.name || 'N/A';
   const writer = credits.crew.find(c => c.job === 'Writer' || c.job === 'Screenplay')?.name || 'N/A';
   const composer = credits.crew.find(c => c.job === 'Original Music Composer' || c.job === 'Composer')?.name || 'N/A';
 
-  // Find trailer Key
   const trailer = videos.find(v => v.type === 'Trailer' && v.site === 'YouTube') || videos[0];
 
   const handlePlayClick = () => {
@@ -153,13 +141,12 @@ export default function MovieDetail() {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert("🍿 Link copied to clipboard!");
+    showToast('Link copied to clipboard!', 'success');
   };
 
   return (
     <div className="bg-[#0A0A0F] pb-20 relative select-none">
       
-      {/* 1. Cinematic Bleed Backdrop */}
       <div className="absolute top-0 left-0 w-full h-[70vh] z-0 overflow-hidden">
         <div className="absolute inset-0 bg-[#0A0A0F]/65 z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,#0A0A0F_100%)] z-10" />
@@ -173,27 +160,22 @@ export default function MovieDetail() {
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-20 pt-24 md:pt-36">
         
-        {/* 2. Main Info Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
           
-          {/* Left Column: Poster display */}
           <div className="flex justify-center md:sticky md:top-28">
-            <div className="w-full max-w-[320px] aspect-[2/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80 shimmer-card">
+            <div className="w-full max-w-[320px] aspect-[2/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80 shimmer-card img-blur">
               <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover" />
             </div>
           </div>
 
-          {/* Right Column: Info block */}
           <div className="md:col-span-2 flex flex-col gap-6 text-left">
             
-            {/* Badges / Category Tag */}
             {movie.tag && (
               <span className="bg-[#E50914] text-white text-[10px] uppercase font-mono tracking-widest font-bold px-3 py-1 rounded-md max-w-max self-start shadow-md">
                 {movie.tag}
               </span>
             )}
 
-            {/* Title */}
             <div>
               <h1 className="text-white text-4xl md:text-6xl font-display font-extrabold uppercase leading-tight drop-shadow-lg">
                 {movie.title}
@@ -205,10 +187,9 @@ export default function MovieDetail() {
               )}
             </div>
 
-            {/* Meta Row */}
             <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm font-mono text-gray-300 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-md max-w-max">
               <span className="text-[#F5C518] font-bold flex items-center gap-0.5 glow-gold">
-                ⭐ {rating}
+                <Star className="w-4 h-4 fill-[#F5C518] mr-0.5" /> {rating}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4 text-red-500" /> {formatRuntime(movie.runtime)}
@@ -217,14 +198,13 @@ export default function MovieDetail() {
                 <Calendar className="w-4 h-4 text-red-500" /> {movie.release_date?.split('-')[0]}
               </span>
               <span className="border border-white/20 px-1.5 py-0.5 rounded text-[10px]">
-                {movie.adult ? '🔞 R' : '🍿 PG-13'}
+                {movie.adult ? 'R' : 'PG-13'}
               </span>
               <span className="flex items-center gap-1">
                 {getLangFlag(movie.original_language)} <span className="uppercase text-gray-400">{movie.original_language}</span>
               </span>
             </div>
 
-            {/* Synopsis */}
             <div>
               <h4 className="text-white font-mono text-xs uppercase tracking-wider text-red-500 font-bold mb-2">SYNOPSIS</h4>
               <p className="text-gray-300 text-sm md:text-base leading-relaxed">
@@ -232,10 +212,8 @@ export default function MovieDetail() {
               </p>
             </div>
 
-            {/* Action CTAs */}
             <div className="flex flex-wrap gap-4 mt-2">
               
-              {/* Play streaming movie wrapper */}
               <button 
                 onClick={handlePlayClick}
                 className="bg-[#E50914] hover:bg-[#b0070f] text-white font-bold px-8 py-4 rounded-xl flex items-center gap-2 glow-red transition-all duration-300 cursor-pointer shadow-lg transform hover:-translate-y-0.5 hover:scale-105"
@@ -244,7 +222,6 @@ export default function MovieDetail() {
                 <span className="font-display tracking-widest text-lg">PLAY MOVIE</span>
               </button>
 
-              {/* Watchlist Toggle */}
               <button 
                 onClick={() => toggleWatchlist(movie)}
                 className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold p-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer backdrop-blur-md hover:border-white/30 transform hover:-translate-y-0.5"
@@ -254,19 +231,17 @@ export default function MovieDetail() {
                 <span className="font-display tracking-wider text-sm">{isFav ? 'SAVED' : 'MY LIST'}</span>
               </button>
 
-              {/* Play Trailer */}
               {trailer && (
                 <button 
                   onClick={() => setIsTrailerOpen(true)}
                   className="bg-[#2a2a35]/40 hover:bg-[#2a2a35]/70 border border-white/5 text-white font-bold p-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer backdrop-blur-md hover:border-white/20 transform hover:-translate-y-0.5"
                   title="Play Trailer"
                 >
-                  <svg className="w-5 h-5 text-red-500 fill-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"></path><polygon points="10 15 15 12 10 9"></polygon></svg>
+                  <Play className="w-5 h-5" />
                   <span className="font-display tracking-wider text-sm">TRAILER</span>
                 </button>
               )}
 
-              {/* Share */}
               <button 
                 onClick={handleShare}
                 className="bg-[#2a2a35]/40 hover:bg-[#2a2a35]/70 border border-white/5 text-gray-300 p-4 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer backdrop-blur-md"
@@ -277,7 +252,6 @@ export default function MovieDetail() {
 
             </div>
 
-            {/* Crew Highlights Grid */}
             <div className="grid grid-cols-3 gap-4 border-t border-b border-white/5 py-4 my-2">
               <div>
                 <span className="text-[10px] text-gray-500 font-mono block uppercase">Director</span>
@@ -293,7 +267,6 @@ export default function MovieDetail() {
               </div>
             </div>
 
-            {/* Genres Pills */}
             <div className="flex flex-wrap gap-2">
               {movie.genres?.map((g, idx) => (
                 <span 
@@ -309,11 +282,9 @@ export default function MovieDetail() {
 
         </div>
 
-        {/* 3. Stream Video Player Embed wrapper */}
         {isPlaying && (
           <div ref={playerRef} className="mt-16 flex flex-col gap-4 animate-scaleIn">
             
-            {/* Source Toggle Row */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -336,16 +307,13 @@ export default function MovieDetail() {
               </div>
             </div>
 
-            {/* Main Player Frame */}
             <div className="border border-white/10 rounded-3xl overflow-hidden shadow-2xl bg-black relative">
-              {/* Watermark logo overlay */}
               <div className="absolute top-4 left-6 z-30 pointer-events-none flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity duration-300 select-none">
                 <span className="text-[#E50914] font-extrabold text-2xl font-display tracking-tighter">N</span>
                 <span className="text-white font-bold text-sm font-display tracking-widest">exFlix PLAYER</span>
               </div>
 
               <div className="aspect-video w-full relative">
-                {/* Custom responsive iframe overlay loading skeleton */}
                 {!iframeLoaded && (
                   <div className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center z-20 gap-4">
                     <div className="w-16 h-16 border-4 border-t-[#E50914] border-white/10 rounded-full animate-spin" />
@@ -368,13 +336,13 @@ export default function MovieDetail() {
               </div>
               
               <div className="p-4 bg-[#111117] border-t border-white/5 flex items-center justify-between text-xs text-gray-400 font-mono">
-                <span>Streaming source: **{sourceMeta[streamSource]?.label || 'Unknown'}**</span>
+                <span>Streaming source: {sourceMeta[streamSource]?.label || 'Unknown'}</span>
                 <div className="flex items-center gap-3">
                   <button onClick={toggleFullscreen} className="hover:text-white transition-colors cursor-pointer" title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
                     {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
                   </button>
                   <span className="text-[#F5C518] flex items-center gap-1 animate-pulse">
-                    ● LIVE STREAM SYNCED
+                    ● STREAM READY
                   </span>
                 </div>
               </div>
@@ -382,12 +350,11 @@ export default function MovieDetail() {
           </div>
         )}
 
-        {/* 4. Cast Avatars Row (Horizontal Scroller) */}
         {credits.cast && credits.cast.length > 0 && (
           <div className="mt-20 text-left">
             <h3 className="text-white font-display text-2xl tracking-wider mb-6 uppercase flex items-center gap-2">
               <span className="w-1.5 h-6 bg-[#E50914] rounded-full inline-block" />
-              🎭 STAR CAST
+              STAR CAST
             </h3>
             
             <div className="flex gap-6 overflow-x-auto scrollbar-hide py-2">
@@ -415,22 +382,21 @@ export default function MovieDetail() {
           </div>
         )}
 
-        {/* 5. User Reviews Panel */}
         {reviews && reviews.length > 0 && (
           <div className="mt-20 text-left">
             <h3 className="text-white font-display text-2xl tracking-wider mb-6 uppercase flex items-center gap-2">
               <span className="w-1.5 h-6 bg-[#E50914] rounded-full inline-block" />
-              💬 USER CRITICS ({reviews.length})
+              USER CRITICS ({reviews.length})
             </h3>
 
             <div className="flex flex-col gap-4">
               {reviews.slice(0, 3).map((rev, idx) => (
                 <div key={idx} className="glass-card p-5 rounded-2xl border border-white/5 relative">
                   <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-3.5">
-                    <span className="font-bold text-xs text-white uppercase font-mono tracking-wider">Reviewer: **{rev.author}**</span>
+                    <span className="font-bold text-xs text-white uppercase font-mono tracking-wider">Reviewer: {rev.author}</span>
                     {rev.rating && (
                       <span className="text-xs text-[#F5C518] font-bold bg-yellow-950/20 border border-[#F5C518]/20 px-2 py-0.5 rounded">
-                        ⭐ {rev.rating}/10
+                        <Star className="w-3 h-3 fill-[#F5C518] inline mr-0.5" /> {rev.rating}/10
                       </span>
                     )}
                   </div>
@@ -445,14 +411,12 @@ export default function MovieDetail() {
 
       </div>
 
-      {/* 6. Similar Recommendations Carousel */}
       {similar && similar.length > 0 && (
         <div className="mt-16">
-          <Carousel title="🎬 SIMILAR RECOMMENDATIONS" items={similar} />
+          <Carousel title="SIMILAR RECOMMENDATIONS" items={similar} />
         </div>
       )}
 
-      {/* 7. YouTube Trailer Lightbox Overlay */}
       {isTrailerOpen && trailer && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 px-4">
           <div className="w-full max-w-4xl bg-black rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden animate-scaleIn">
@@ -460,7 +424,7 @@ export default function MovieDetail() {
               onClick={() => setIsTrailerOpen(false)}
               className="absolute top-4 right-4 bg-black/60 text-white p-2.5 rounded-full hover:bg-red-500 z-30 transition-colors cursor-pointer"
             >
-              <Minimize className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
             <div className="aspect-video w-full">
               <iframe

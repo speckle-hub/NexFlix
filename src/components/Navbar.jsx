@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Search, Bell, Menu, X, Key, Award, Play, Film, Tv, User, Heart, Trash2, Check } from 'lucide-react';
+import { Search, Bell, Menu, X, Key, User, Play, Film, Tv, Heart, Trash2, Check } from 'lucide-react';
 
 export default function Navbar() {
   const { 
@@ -25,7 +25,6 @@ export default function Navbar() {
   const notificationsRef = useRef();
   const settingsRef = useRef();
 
-  // Scroll event detection for navbar blur transition
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -38,7 +37,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdowns on clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
@@ -59,15 +57,11 @@ export default function Navbar() {
     setTimeout(() => {
       setKeySavedAlert(false);
       setIsSettingsOpen(false);
-      // Reload pages to trigger fresh service data fetch
       window.location.reload();
     }, 1500);
   };
 
-  const activeLink = (path) => 
-    location.pathname === path 
-      ? "text-[#E50914] font-semibold border-b-2 border-[#E50914] pb-1 font-display tracking-widest text-lg" 
-      : "text-gray-300 hover:text-white hover:scale-105 transition-all duration-200 font-display tracking-widest text-lg";
+  const isActive = (path) => location.pathname === path;
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -78,24 +72,28 @@ export default function Navbar() {
       }`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <span className="text-[#E50914] font-extrabold text-4xl font-display tracking-tighter drop-shadow-[0_0_10px_rgba(229,9,20,0.4)] group-hover:scale-105 transition-all">N</span>
             <span className="text-white font-bold text-2xl font-display tracking-widest group-hover:text-gray-200 transition-colors">exFlix</span>
           </Link>
 
-          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className={activeLink('/')}>HOME</Link>
-            <Link to="/browse" className={activeLink('/browse')}>BROWSE</Link>
-            <Link to="/watchlist" className={activeLink('/watchlist')}>MY LIST</Link>
-            <Link to="/profile" className={activeLink('/profile')}>DASHBOARD</Link>
+            <Link to="/" className={`nav-underline font-display tracking-widest text-lg ${isActive('/') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+              HOME
+            </Link>
+            <Link to="/browse" className={`nav-underline font-display tracking-widest text-lg ${isActive('/browse') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+              BROWSE
+            </Link>
+            <Link to="/watchlist" className={`nav-underline font-display tracking-widest text-lg ${isActive('/watchlist') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+              MY LIST
+            </Link>
+            <Link to="/profile" className={`nav-underline font-display tracking-widest text-lg ${isActive('/profile') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+              DASHBOARD
+            </Link>
           </div>
 
-          {/* Nav Actions */}
           <div className="flex items-center gap-5">
             
-            {/* Search Button */}
             <button 
               onClick={() => navigate('/search')}
               className="text-gray-300 hover:text-[#E50914] transition-colors p-2 hover:scale-110 duration-200"
@@ -104,7 +102,6 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </button>
 
-            {/* API Key Modal Button */}
             <button 
               onClick={() => {
                 setKeyInput(tmdbKey);
@@ -120,7 +117,6 @@ export default function Navbar() {
               <Key className="w-5 h-5" />
             </button>
 
-            {/* Notifications Bell */}
             <div className="relative" ref={notificationsRef}>
               <button 
                 onClick={() => {
@@ -137,7 +133,6 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Notifications Dropdown Panel */}
               {isNotificationsOpen && (
                 <div className="absolute right-0 mt-3 w-80 glass-modal rounded-xl shadow-2xl p-4 border border-white/10 z-50 transition-all duration-300">
                   <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
@@ -171,7 +166,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Profile Avatar Quick-link */}
             <Link 
               to="/profile" 
               className="w-9 h-9 rounded-full bg-[#111117] border-2 border-white/10 hover:border-[#E50914] flex items-center justify-center text-lg hover:scale-105 transition-all duration-300 shadow-md"
@@ -180,7 +174,6 @@ export default function Navbar() {
               {profile.avatar}
             </Link>
 
-            {/* Mobile Hamburger Button */}
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-gray-300 hover:text-white transition-colors"
@@ -191,7 +184,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Panel */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 glass-modal border border-white/10 p-5 rounded-2xl flex flex-col gap-4 animate-fadeIn">
             <Link 
@@ -199,14 +191,14 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-gray-200 hover:text-white text-lg font-display tracking-widest"
             >
-              🏠 HOME
+              HOME
             </Link>
             <Link 
               to="/browse" 
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-gray-200 hover:text-white text-lg font-display tracking-widest"
             >
-              Browse
+              BROWSE
             </Link>
             <Link 
               to="/watchlist" 
@@ -226,7 +218,6 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Settings Modal (TMDB API Key configuration) */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 px-4">
           <div 
@@ -247,7 +238,7 @@ export default function Navbar() {
               
               <h3 className="text-2xl font-bold font-display tracking-widest text-white">TMDB CONFIGURATION</h3>
               <p className="text-gray-400 text-xs mt-2 leading-relaxed">
-                Connect the streaming client to a live TMDB service, or use the premium built-in **Demo Mode** fallback.
+                Connect the streaming client to a live TMDB service, or use the premium built-in Demo Mode fallback.
               </p>
             </div>
 
@@ -280,8 +271,8 @@ export default function Navbar() {
 
               {!tmdbKey && !keySavedAlert && (
                 <div className="bg-red-950/20 border border-red-500/10 text-red-300 p-3 rounded-xl text-[11px] leading-normal flex items-start gap-2">
-                  <span className="text-base leading-none">⚠️</span>
-                  <span>Currently in **Demo Mode**. You are browsing high-fidelity custom mockup metadata representing standard movies and TV streams.</span>
+                  <span className="text-base leading-none">i</span>
+                  <span>Currently in Demo Mode. You are browsing high-fidelity custom mockup metadata representing standard movies and TV streams.</span>
                 </div>
               )}
 
