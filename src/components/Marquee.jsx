@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export default function Marquee({ items = [], speed = 40 }) {
+export default function Marquee({ items = [] }) {
   if (items.length === 0) return null;
 
-  const duration = items.length * speed;
+  const duration = Math.max(12, items.length * 1.5);
 
   return (
     <div className="relative overflow-hidden py-6 w-full">

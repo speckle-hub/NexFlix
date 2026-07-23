@@ -90,6 +90,9 @@ export default function Navbar() {
             <Link to="/profile" className={`nav-underline font-display tracking-widest text-lg ${isActive('/profile') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
               DASHBOARD
             </Link>
+            <Link to="/mood-matcher" className={`nav-underline font-display tracking-widest text-lg ${isActive('/mood-matcher') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+              MOOD AI
+            </Link>
           </div>
 
           <div className="flex items-center gap-5">
@@ -213,6 +216,13 @@ export default function Navbar() {
               className="text-gray-200 hover:text-white text-lg font-display tracking-widest"
             >
               DASHBOARD
+            </Link>
+            <Link 
+              to="/mood-matcher" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-200 hover:text-white text-lg font-display tracking-widest"
+            >
+              MOOD AI
             </Link>
           </div>
         )}

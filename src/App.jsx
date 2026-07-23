@@ -15,6 +15,7 @@ const Search = lazy(() => import('./pages/Search'));
 const Browse = lazy(() => import('./pages/Browse'));
 const Watchlist = lazy(() => import('./pages/Watchlist'));
 const Profile = lazy(() => import('./pages/Profile'));
+const MoodMatcher = lazy(() => import('./pages/MoodMatcher'));
 const SearchModal = lazy(() => import('./components/SearchModal'));
 
 function PageLoader() {
@@ -109,6 +110,11 @@ const AnimatedLayout = () => {
               <Route path="/profile" element={
                 <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
                   <Profile />
+                </motion.div>
+              } />
+              <Route path="/mood-matcher" element={
+                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
+                  <MoodMatcher />
                 </motion.div>
               } />
             </Routes>
