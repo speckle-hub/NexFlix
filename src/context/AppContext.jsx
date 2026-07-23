@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { tmdbService } from '../services/tmdb';
+import useWatchlistStore from '../stores/watchlistStore';
+import useRatingsStore from '../stores/ratingsStore';
 
 const AppContext = createContext();
 
@@ -8,10 +10,11 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('nexflix_tmdb_key') || '3fd2be6f0c70a2a598f084ddfb75487c';
   });
 
-  const [watchlist, setWatchlist] = useState(() => {
-    const saved = localStorage.getItem('nexflix_watchlist');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const watchlist = useWatchlistStore(s => s.items);
+  const addToWatchlist = useWatchlistStore(s => s.add);
+  const removeFromWatchlist = useWatchlistStore(s => s.remove);
+  const toggleWatchlist = useWatchlistStore(s => s.toggle);
+  const initWatchlist = useWatchlistStore(s => s.init);
 
   const [watchHistory, setWatchHistory] = useState(() => {
     const saved = localStorage.getItem('nexflix_watch_history');
@@ -52,12 +55,13 @@ export const AppProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    localStorage.setItem('nexflix_tmdb_key', tmdbKey);
-  }, [tmdbKey]);
+    initWatchlist();
+    useRatingsStore.getState().init();
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('nexflix_watchlist', JSON.stringify(watchlist));
-  }, [watchlist]);
+    localStorage.setItem('nexflix_tmdb_key', tmdbKey);
+  }, [tmdbKey]);
 
   useEffect(() => {
     localStorage.setItem('nexflix_watch_history', JSON.stringify(watchHistory));
@@ -157,22 +161,18 @@ export const AppProvider = ({ children }) => {
     setTmdbKey(key.trim());
   };
 
-  const addToWatchlist = (item) => {
-    if (!watchlist.find(w => w.id === item.id)) {
-      setWatchlist(prev => [item, ...prev]);
+  const addToWatchlistWithNotif = (item) => {
+    if (!watchlist.some(w => w.id === item.id)) {
+      addToWatchlist(item);
       addNotification('🎬 Added to Watchlist', `"${item.title || item.name}" has been saved to your watchlist.`, 'Just now');
     }
   };
 
-  const removeFromWatchlist = (itemId) => {
-    setWatchlist(prev => prev.filter(w => w.id !== itemId));
-  };
-
-  const toggleWatchlist = (item) => {
-    if (watchlist.find(w => w.id === item.id)) {
+  const toggleWatchlistWithNotif = (item) => {
+    if (watchlist.some(w => w.id === item.id)) {
       removeFromWatchlist(item.id);
     } else {
-      addToWatchlist(item);
+      addToWatchlistWithNotif(item);
     }
   };
 
@@ -230,14 +230,24 @@ export const AppProvider = ({ children }) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  const [quickViewItem, setQuickViewItem] = useState(null);
+
+  const openQuickView = (item) => {
+    setQuickViewItem(item);
+  };
+
+  const closeQuickView = () => {
+    setQuickViewItem(null);
+  };
+
   return (
     <AppContext.Provider value={{
       tmdbKey,
       updateTmdbKey,
       watchlist,
-      addToWatchlist,
+      addToWatchlist: addToWatchlistWithNotif,
       removeFromWatchlist,
-      toggleWatchlist,
+      toggleWatchlist: toggleWatchlistWithNotif,
       watchHistory,
       addToHistory,
       clearHistory,
@@ -246,7 +256,10 @@ export const AppProvider = ({ children }) => {
       notifications,
       addNotification,
       markAllNotificationsRead,
-      deleteNotification
+      deleteNotification,
+      quickViewItem,
+      openQuickView,
+      closeQuickView
     }}>
       {children}
     </AppContext.Provider>

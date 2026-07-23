@@ -84,7 +84,7 @@ export default function Navbar() {
             <Link to="/browse" className={`nav-underline font-display tracking-widest text-lg ${isActive('/browse') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
               BROWSE
             </Link>
-            <Link to="/watchlist" className={`nav-underline font-display tracking-widest text-lg ${isActive('/watchlist') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
+            <Link to="/my-list" className={`nav-underline font-display tracking-widest text-lg ${isActive('/my-list') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
               MY LIST
             </Link>
             <Link to="/profile" className={`nav-underline font-display tracking-widest text-lg ${isActive('/profile') ? 'text-[#E50914] active' : 'text-gray-300 hover:text-white'}`}>
@@ -204,7 +204,7 @@ export default function Navbar() {
               BROWSE
             </Link>
             <Link 
-              to="/watchlist" 
+              to="/my-list" 
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-gray-200 hover:text-white text-lg font-display tracking-widest"
             >

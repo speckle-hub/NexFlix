@@ -6,8 +6,12 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastContainer from './components/Toast';
 import Particles from './components/Particles';
+import QuickViewModal from './components/QuickViewModal';
+import CustomCursor from './components/CustomCursor';
+import Onboarding from './components/Onboarding';
+import CommandPalette from './components/CommandPalette';
+import ErrorBoundary from './components/ErrorBoundary';
 
-// Route-level code splitting
 const Home = lazy(() => import('./pages/Home'));
 const MovieDetail = lazy(() => import('./pages/MovieDetail'));
 const TVDetail = lazy(() => import('./pages/TVDetail'));
@@ -16,6 +20,7 @@ const Browse = lazy(() => import('./pages/Browse'));
 const Watchlist = lazy(() => import('./pages/Watchlist'));
 const Profile = lazy(() => import('./pages/Profile'));
 const MoodMatcher = lazy(() => import('./pages/MoodMatcher'));
+const MyList = lazy(() => import('./pages/MyList'));
 const SearchModal = lazy(() => import('./components/SearchModal'));
 
 function PageLoader() {
@@ -27,27 +32,36 @@ function PageLoader() {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, y: 15 },
+  initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -15 }
+  exit: { opacity: 0, y: -20 }
 };
 
 const pageTransition = {
   type: "tween",
-  ease: "easeInOut",
-  duration: 0.4
+  ease: [0.25, 0.1, 0.25, 1],
+  duration: 0.35
 };
+
+function withErrorBoundary(Component) {
+  return (
+    <ErrorBoundary>
+      <Component />
+    </ErrorBoundary>
+  );
+}
 
 const AnimatedLayout = () => {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
+        setIsCommandOpen((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -66,57 +80,36 @@ const AnimatedLayout = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const wrapPage = (Component) => (
+    <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+      <ErrorBoundary>
+        <Component />
+      </ErrorBoundary>
+    </motion.div>
+  );
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#0A0A0F] text-white relative">
+    <div className="flex flex-col min-h-screen bg-[#0A0A0F] text-white relative grain-overlay">
+      <div className="fixed inset-0 mesh-bg pointer-events-none z-[1]" />
       <Particles count={30} />
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
 
       <Navbar />
+      <CustomCursor />
       
-      <main className="flex-grow">
+      <main className="flex-grow relative z-10">
         <Suspense fallback={<PageLoader />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                  <Home />
-                </motion.div>
-              } />
-              <Route path="/movie/:id" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                  <MovieDetail />
-                </motion.div>
-              } />
-              <Route path="/tv/:id" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                  <TVDetail />
-                </motion.div>
-              } />
-              <Route path="/search" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
-                  <Search />
-                </motion.div>
-              } />
-              <Route path="/browse" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen">
-                  <Browse />
-                </motion.div>
-              } />
-              <Route path="/watchlist" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
-                  <Watchlist />
-                </motion.div>
-              } />
-              <Route path="/profile" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
-                  <Profile />
-                </motion.div>
-              } />
-              <Route path="/mood-matcher" element={
-                <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto">
-                  <MoodMatcher />
-                </motion.div>
-              } />
+              <Route path="/" element={wrapPage(Home)} />
+              <Route path="/movie/:id" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}><ErrorBoundary><MovieDetail /></ErrorBoundary></motion.div>} />
+              <Route path="/tv/:id" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}><ErrorBoundary><TVDetail /></ErrorBoundary></motion.div>} />
+              <Route path="/search" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto"><ErrorBoundary><Search /></ErrorBoundary></motion.div>} />
+              <Route path="/browse" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen"><ErrorBoundary><Browse /></ErrorBoundary></motion.div>} />
+              <Route path="/watchlist" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto"><ErrorBoundary><Watchlist /></ErrorBoundary></motion.div>} />
+              <Route path="/profile" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto"><ErrorBoundary><Profile /></ErrorBoundary></motion.div>} />
+              <Route path="/mood-matcher" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto"><ErrorBoundary><MoodMatcher /></ErrorBoundary></motion.div>} />
+              <Route path="/my-list" element={<motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition} className="pt-24 min-h-screen px-6 md:px-12 max-w-7xl mx-auto"><ErrorBoundary><MyList /></ErrorBoundary></motion.div>} />
             </Routes>
           </AnimatePresence>
         </Suspense>
@@ -125,6 +118,9 @@ const AnimatedLayout = () => {
       <Footer />
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <QuickViewModal />
+      <CommandPalette isOpen={isCommandOpen} onClose={() => setIsCommandOpen(false)} />
+      <Onboarding />
       <ToastContainer />
     </div>
   );

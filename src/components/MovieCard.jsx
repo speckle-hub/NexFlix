@@ -1,15 +1,33 @@
 import React, { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Play, Calendar, Film, Tv } from 'lucide-react';
+import { Star, Play, Calendar, Film, Tv, Eye, Plus, Check, ThumbsUp } from 'lucide-react';
 import { getImageUrl } from '../services/tmdb';
+import { useApp } from '../context/AppContext';
+import useWatchlistStore from '../stores/watchlistStore';
+import useRatingsStore from '../stores/ratingsStore';
 
 export default function MovieCard({ item }) {
+  const { openQuickView } = useApp();
+  const toggleWatchlist = useWatchlistStore(s => s.toggle);
+  const isInList = useWatchlistStore(s => s.items.some(i => i.id === item.id));
   const isMovie = item.title !== undefined;
+  const aggregates = useRatingsStore(s => s.aggregates);
+
+  const mediaType = isMovie ? 'movie' : 'tv';
+  const ratingKey = `${item.id}-${mediaType}`;
+  const rawAgg = aggregates[ratingKey];
+  const aggBadge = rawAgg && rawAgg.total >= 3
+    ? Math.round((rawAgg.up_count / rawAgg.total) * 100)
+    : null;
   const title = item.title || item.name;
   const releaseYear = (isMovie ? item.release_date : item.first_air_date)?.split('-')[0] || 'N/A';
   const rating = item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : 'N/A';
-  const linkPath = isMovie ? `/movie/${item.id}` : `/tv/${item.id}`;
+  const popularity = item.popularity || 0;
+  const socialBadge = item.tag || (
+    popularity > 150 ? '#3 Trending' :
+    popularity > 100 ? 'Trending' :
+    rating !== 'N/A' && rating >= 8.5 ? 'Top Rated' : null
+  );
 
   const cardRef = useRef(null);
   const [spotlight, setSpotlight] = useState({ x: 50, y: 50 });
@@ -33,8 +51,12 @@ export default function MovieCard({ item }) {
     return 'hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:border-white/20';
   };
 
+  const handleClick = () => {
+    openQuickView(item);
+  };
+
   return (
-    <Link to={linkPath} className="block group">
+    <button onClick={handleClick} className="block group text-left w-full cursor-pointer">
       <motion.div 
         ref={cardRef}
         onMouseMove={handleMouseMove}
@@ -54,14 +76,19 @@ export default function MovieCard({ item }) {
         <div className="absolute inset-0 img-blur z-0" />
         <img 
           src={getImageUrl(item.poster_path, 'w500')} 
-          alt={title}
+          alt={`${title} poster`}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 relative z-10"
         />
 
-        {item.tag && (
-          <span className="absolute top-3 left-3 bg-[#E50914] text-white font-display text-[10px] tracking-wider font-semibold px-2 py-1 rounded-md z-20 shadow-md">
-            {item.tag.toUpperCase()}
+        {socialBadge && (
+          <span className="absolute top-3 left-3 bg-[#E50914] text-white font-display text-[10px] tracking-wider font-semibold px-2 py-1 rounded-md z-20 shadow-md flex items-center gap-1">
+            {socialBadge === '#3 Trending' || socialBadge === 'Trending' ? (
+              <span className="text-[9px]">🔥</span>
+            ) : socialBadge === 'Top Rated' ? (
+              <span className="text-[9px]">⭐</span>
+            ) : null}
+            {socialBadge.toUpperCase()}
           </span>
         )}
 
@@ -83,6 +110,12 @@ export default function MovieCard({ item }) {
                   {rating}
                 </span>
               )}
+              {aggBadge && (
+                <span className="flex items-center gap-0.5 bg-emerald-950/40 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/25 font-bold">
+                  <ThumbsUp className="w-2.5 h-2.5 fill-emerald-400" />
+                  {aggBadge}%
+                </span>
+              )}
             </div>
 
             <h4 className="text-white font-bold font-sans text-sm md:text-base leading-tight line-clamp-2">
@@ -97,7 +130,25 @@ export default function MovieCard({ item }) {
 
         </div>
 
+        {/* Watchlist toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleWatchlist(item); }}
+          className={`absolute top-3 right-3 z-30 p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
+            isInList
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 opacity-100'
+              : 'bg-black/40 text-white border border-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/10'
+          }`}
+          title={isInList ? 'Remove from My List' : 'Add to My List'}
+        >
+          {isInList ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Quick View label on hover */}
+        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[8px] font-mono font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-30 flex items-center gap-1 border border-white/10">
+          <Eye className="w-3 h-3" /> QUICK VIEW
+        </div>
+
       </motion.div>
-    </Link>
+    </button>
   );
 }

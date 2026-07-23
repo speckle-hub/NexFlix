@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Film, Check, Play, Trash2, Award, Zap, Flame, TrendingUp, Heart, Tv, Calendar, Star, Crown } from 'lucide-react';
+import { Clock, Film, Check, Play, Trash2, Award, Zap, Flame, TrendingUp, Heart, Tv, Calendar, Star, Crown, Rocket, Eye, Smile, Compass, Palette } from 'lucide-react';
 import AnimatedCounter from '../components/AnimatedCounter';
 import { motion } from 'framer-motion';
 
 const AVATAR_PRESETS = ['🍿', '🎬', '🚀', '🎭', '🥷', '👾', '🧙', '👑', '👽', '🦄'];
 const AVAILABLE_GENRES = ['Action', 'Sci-Fi', 'Horror', 'Comedy', 'Drama', 'Thriller', 'Adventure', 'Animation'];
+const GENRE_ICONS = {
+  Action: Zap,
+  'Sci-Fi': Rocket,
+  Horror: Eye,
+  Comedy: Smile,
+  Drama: Film,
+  Thriller: Eye,
+  Adventure: Compass,
+  Animation: Palette,
+};
 
 export default function Profile() {
   const { profile, updateProfile, watchHistory, clearHistory } = useApp();
@@ -322,6 +332,7 @@ export default function Profile() {
           <div className="flex flex-wrap gap-2 relative">
             {AVAILABLE_GENRES.map((g, idx) => {
               const active = (profile.favoriteGenres || []).includes(g);
+              const Icon = GENRE_ICONS[g];
               return (
                 <button
                   key={idx}
@@ -333,6 +344,7 @@ export default function Profile() {
                   }`}
                 >
                   {active && <Check className="w-3 h-3 text-[#E50914]" />}
+                  {Icon && !active && <Icon className="w-3 h-3" />}
                   {g.toUpperCase()}
                 </button>
               );

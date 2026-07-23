@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { tmdbService } from '../services/tmdb';
 import Carousel from '../components/Carousel';
 import Marquee from '../components/Marquee';
 import { HeroSkeleton } from '../components/Skeleton';
-import { Play, Plus, Check, Star, Shuffle } from 'lucide-react';
+import { Play, Plus, Check, Star, Shuffle, Heart } from 'lucide-react';
+import useWatchlistStore from '../stores/watchlistStore';
 
 const FALLBACK_BACKDROP = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=1200';
 
@@ -24,6 +25,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [parallaxY, setParallaxY] = useState(0);
   const [shuffling, setShuffling] = useState(false);
+  const prefersReduced = useReducedMotion();
 
   const heroRef = useRef(null);
 
@@ -85,6 +87,7 @@ export default function Home() {
   }, [trending]);
 
   useEffect(() => {
+    if (prefersReduced) return;
     const handleScroll = () => {
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect();
@@ -94,7 +97,7 @@ export default function Home() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [prefersReduced]);
 
   const handleSurpriseMe = () => {
     setShuffling(true);
@@ -128,6 +131,52 @@ export default function Home() {
   const internationalCinema = trending.filter(item => item.original_language !== 'en');
 
   const continueWatching = watchHistory.slice(0, 10);
+
+  const genreOverlapRecommendations = useMemo(() => {
+    if (watchHistory.length === 0) return [];
+    const historyGenres = new Set();
+    watchHistory.forEach(h => {
+      const genres = {
+        "Interstellar": ["Science Fiction", "Drama", "Adventure"],
+        "Inception": ["Action", "Science Fiction", "Adventure"],
+        "Stranger Things": ["Drama", "Sci-Fi & Fantasy", "Mystery"],
+        "Dune: Part Two": ["Science Fiction", "Adventure"],
+        "Oppenheimer": ["Drama", "History"],
+        "The Dark Knight": ["Action", "Drama", "Crime"],
+        "The Last of Us": ["Drama", "Action & Adventure", "Sci-Fi & Fantasy"],
+        "Breaking Bad": ["Drama", "Crime"],
+        "Spider-Man: Across the Spider-Verse": ["Animation", "Action", "Adventure", "Science Fiction"],
+        "Arcane": ["Animation", "Sci-Fi & Fantasy", "Action & Adventure"],
+        "The Matrix": ["Action", "Science Fiction"],
+        "The Mandalorian": ["Action & Adventure", "Sci-Fi & Fantasy"],
+        "Spirited Away": ["Animation", "Family", "Fantasy"],
+        "Pulp Fiction": ["Thriller", "Crime"],
+        "Whiplash": ["Drama", "Music"],
+        "The Boys": ["Sci-Fi & Fantasy", "Action & Adventure", "Drama"],
+        "Gladiator": ["Action", "Drama", "Adventure"],
+        "Cyberpunk: Edgerunners": ["Animation", "Sci-Fi & Fantasy", "Action & Adventure"],
+        "Parasite": ["Comedy", "Thriller", "Drama"],
+        "Civil War": ["Action", "Drama", "War"]
+      };
+      (genres[h.title] || ['Drama']).forEach(g => historyGenres.add(g));
+    });
+
+    const pool = [...trending, ...topRatedMovies, ...popularTV];
+    const scored = pool
+      .filter(item => !watchHistory.some(h => h.id === item.id))
+      .map(item => {
+        const itemGenres = item.genres || [];
+        const overlap = [...historyGenres].filter(g =>
+          itemGenres.some(ig => ig.toLowerCase().includes(g.toLowerCase()) || g.toLowerCase().includes(ig.toLowerCase()))
+        ).length;
+        return { item, score: overlap * 10 + (item.vote_average || 0) * 2 };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(r => r.item);
+
+    return scored;
+  }, [watchHistory, trending, topRatedMovies, popularTV]);
 
   return (
     <div className="bg-[#0A0A0F] pb-10 overflow-hidden relative">
@@ -267,6 +316,14 @@ export default function Home() {
         />
       )}
 
+      {/* My List */}
+      <HomeMyListRow />
+
+      {/* Because you watched */}
+      {genreOverlapRecommendations.length > 0 && (
+        <Carousel title="BECAUSE YOU WATCHED" items={genreOverlapRecommendations} />
+      )}
+
       <Carousel title="TRENDING NOW" items={trending} />
       <Carousel title="TOP RATED MOVIES" items={topRatedMovies} />
       <Carousel title="POPULAR TV SHOWS" items={popularTV} />
@@ -308,5 +365,17 @@ export default function Home() {
       )}
 
     </div>
+  );
+}
+
+function HomeMyListRow() {
+  const watchlistItems = useWatchlistStore(s => s.items);
+  if (watchlistItems.length === 0) return null;
+
+  return (
+    <Carousel
+      title="MY LIST"
+      items={watchlistItems}
+    />
   );
 }

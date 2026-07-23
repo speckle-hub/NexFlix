@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { tmdbService } from '../services/tmdb';
 import MovieCard from '../components/MovieCard';
 import { GridSkeleton } from '../components/Skeleton';
-import { SlidersHorizontal, RefreshCw, Calendar, Star, Film } from 'lucide-react';
+import { SlidersHorizontal, RefreshCw, Calendar, Star, Film, Zap, Rocket, Ghost, Smile, Eye, Compass, Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Browse() {
@@ -22,13 +22,13 @@ export default function Browse() {
   const sentinelRef = useRef(null);
 
   const GENRES = [
-    { id: 28, name: "Action" },
-    { id: 878, name: "Science Fiction" },
-    { id: 27, name: "Horror" },
-    { id: 35, name: "Comedy" },
-    { id: 18, name: "Drama" },
-    { id: 53, name: "Thriller" },
-    { id: 16, name: "Animation" }
+    { id: 28, name: "Action", icon: Zap },
+    { id: 878, name: "Science Fiction", icon: Rocket },
+    { id: 27, name: "Horror", icon: Eye },
+    { id: 35, name: "Comedy", icon: Smile },
+    { id: 18, name: "Drama", icon: Film },
+    { id: 53, name: "Thriller", icon: Eye },
+    { id: 16, name: "Animation", icon: Palette }
   ];
 
   const filterListLocally = (list) => {
@@ -133,17 +133,37 @@ export default function Browse() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">GENRE SELECT</label>
-            <select
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              className="w-full bg-[#0A0A0F] border border-white/10 text-white text-xs font-mono font-bold px-3 py-3 rounded-xl outline-none focus:border-[#E50914] cursor-pointer"
-            >
-              <option value="">ALL GENRES</option>
-              {GENRES.map(g => (
-                <option key={g.id} value={g.id}>{g.name.toUpperCase()}</option>
-              ))}
-            </select>
+            <label className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">GENRE</label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setSelectedGenre('')}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-mono font-bold transition-all cursor-pointer ${
+                  !selectedGenre
+                    ? 'bg-[#E50914] text-white'
+                    : 'bg-[#0A0A0F] text-gray-400 border border-white/5 hover:text-white'
+                }`}
+              >
+                ALL
+              </button>
+              {GENRES.map(g => {
+                const Icon = g.icon;
+                const isActive = selectedGenre === String(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => setSelectedGenre(isActive ? '' : String(g.id))}
+                    className={`px-2.5 py-1.5 rounded-lg text-[9px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      isActive
+                        ? 'bg-[#E50914] text-white'
+                        : 'bg-[#0A0A0F] text-gray-400 border border-white/5 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {g.name.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2.5">

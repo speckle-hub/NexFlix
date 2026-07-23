@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { tmdbService } from '../services/tmdb';
 import MovieCard from '../components/MovieCard';
 import { GridSkeleton } from '../components/Skeleton';
-import { Search as SearchIcon, SlidersHorizontal, Film, Tv, Star, Calendar, X, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react';
+import { Search as SearchIcon, SlidersHorizontal, Film, Tv, Star, Calendar, X, Sparkles, TrendingUp, Clock, Zap, Sword, Clapperboard, Rocket, Laugh, Eye, Compass, Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SUGGESTIONS = [
@@ -71,6 +71,15 @@ export default function Search() {
   };
 
   const GENRE_LIST = ["Action", "Drama", "Science Fiction", "Comedy", "Thriller", "Adventure", "Animation"];
+  const GENRE_ICONS = {
+    Action: Zap,
+    Drama: Film,
+    'Science Fiction': Rocket,
+    Comedy: Star,
+    Thriller: Eye,
+    Adventure: Compass,
+    Animation: Palette,
+  };
 
   const getProcessedResults = () => {
     let list = [...results];
@@ -239,19 +248,23 @@ export default function Search() {
                 >
                   ALL GENRES
                 </button>
-                {GENRE_LIST.map((g, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveGenre(g === activeGenre ? '' : g)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer ${
-                      activeGenre === g 
-                        ? 'bg-[#E50914] text-white' 
-                        : 'bg-white/5 hover:bg-white/10 text-gray-400'
-                    }`}
-                  >
-                    {g.toUpperCase()}
-                  </button>
-                ))}
+                {GENRE_LIST.map((g, idx) => {
+                  const Icon = GENRE_ICONS[g];
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveGenre(g === activeGenre ? '' : g)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        activeGenre === g 
+                          ? 'bg-[#E50914] text-white' 
+                          : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                      }`}
+                    >
+                      {Icon && <Icon className="w-3 h-3" />}
+                      {g.toUpperCase()}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

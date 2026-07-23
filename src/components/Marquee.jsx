@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 export default function Marquee({ items = [] }) {
+  const prefersReduced = useReducedMotion();
   if (items.length === 0) return null;
 
   const duration = Math.max(12, items.length * 1.5);
@@ -11,7 +12,7 @@ export default function Marquee({ items = [] }) {
       <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-transparent to-[#0A0A0F] z-10 pointer-events-none" />
       <motion.div
         className="flex gap-6"
-        animate={{ x: ['0%', '-50%'] }}
+        animate={prefersReduced ? {} : { x: ['0%', '-50%'] }}
         transition={{ repeat: Infinity, duration, ease: 'linear' }}
       >
         {[...items, ...items].map((item, idx) => (
