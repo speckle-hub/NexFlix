@@ -59,6 +59,8 @@ const AnimatedLayout = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+      if (isTyping) return;
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setIsCommandOpen((prev) => !prev);

@@ -52,6 +52,8 @@ export default function Carousel({ title, items = [], isLoading = false, showRan
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+      if (isTyping) return;
       if (e.key === 'j' || e.key === 'J') {
         const el = scrollContainerRef.current;
         if (el && showRightArrow) {

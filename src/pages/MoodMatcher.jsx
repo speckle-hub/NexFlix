@@ -192,8 +192,7 @@ export default function MoodMatcher() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
-  const handleSend = async () => {
-    const text = input.trim();
+  const sendMessage = async (text) => {
     if (!text || isThinking || isLoading) return;
 
     setInput('');
@@ -216,28 +215,21 @@ export default function MoodMatcher() {
     setIsThinking(false);
   };
 
+  const handleSend = () => {
+    sendMessage(input.trim());
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      sendMessage(input.trim());
     }
   };
 
   const handlePromptClick = (prompt) => {
     setInput(prompt);
-    setTimeout(() => {
-      setInput(prompt);
-    }, 100);
+    setTimeout(() => sendMessage(prompt), 100);
   };
-
-  useEffect(() => {
-    if (input) {
-      const timer = setTimeout(() => {
-        handleSend();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [input]);
 
   return (
     <div className="text-left flex flex-col h-[calc(100vh-12rem)]">
@@ -370,28 +362,7 @@ export default function MoodMatcher() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08 }}
-                onClick={() => {
-                  setInput(prompt);
-                  setTimeout(() => {
-                    setMessages(prev => [...prev, { role: 'user', text: prompt, matches: [] }]);
-                    setIsThinking(true);
-                    setInput('');
-
-                    setTimeout(async () => {
-                      const matches = matchMovies(prompt, allItems);
-                      const { text: responseText, matches: responseMatches } = generateResponse(
-                        matches.length > 0 ? matches[0].analysis : { genres: [], tone: '', decade: null, keywords: [] },
-                        matches
-                      );
-                      setMessages(prev => [...prev, {
-                        role: 'ai',
-                        text: responseText,
-                        matches: responseMatches
-                      }]);
-                      setIsThinking(false);
-                    }, 1200 + Math.random() * 400);
-                  }, 100);
-                }}
+                onClick={() => handlePromptClick(prompt)}
                 className="glass-pill px-3.5 py-2 rounded-xl text-[11px] font-mono text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Sparkles className="w-3 h-3 text-[#E50914]" />
