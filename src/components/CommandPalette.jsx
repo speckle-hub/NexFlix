@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, Home, Film, Tv, Heart, User, Bot, Command, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Home, Film, Tv, Heart, User, Bot, Command, ArrowRight, Sparkles, AlertTriangle } from 'lucide-react';
 
 const ACTIONS = [
   { id: 'home', label: 'Home', path: '/', icon: Home, keywords: 'home index' },
@@ -10,6 +10,7 @@ const ACTIONS = [
   { id: 'my-list', label: 'My List', path: '/my-list', icon: Heart, keywords: 'watchlist list saved' },
   { id: 'mood', label: 'Mood Matcher', path: '/mood-matcher', icon: Bot, keywords: 'mood ai chat recommend' },
   { id: 'profile', label: 'Dashboard', path: '/profile', icon: User, keywords: 'profile dashboard stats' },
+  { id: 'test-error', label: 'Trigger Error Boundary (Dev Test)', path: '/?testError=true', icon: AlertTriangle, keywords: 'error test boundary crash dev' },
 ];
 
 export default function CommandPalette({ isOpen, onClose }) {

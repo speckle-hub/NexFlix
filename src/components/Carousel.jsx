@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
 import { CardSkeleton } from './Skeleton';
 
-export default function Carousel({ title, items = [], isLoading = false }) {
+export default function Carousel({ title, items = [], isLoading = false, showRank = false }) {
   const scrollContainerRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -122,9 +122,9 @@ export default function Carousel({ title, items = [], isLoading = false }) {
           ) : items.length === 0 ? (
             <p className="text-gray-500 text-sm py-8 font-mono">No titles available in this category.</p>
           ) : (
-            items.map((item) => (
+            items.map((item, idx) => (
               <div key={item.id} className="snap-start" data-carousel-card tabIndex={-1}>
-                <MovieCard item={item} />
+                <MovieCard item={item} rank={showRank ? idx + 1 : undefined} />
               </div>
             ))
           )}

@@ -109,6 +109,76 @@ export default function Home() {
     navigate(isMovie ? `/movie/${randomItem.id}` : `/tv/${randomItem.id}`);
   };
 
+  const genreOverlapRecommendations = useMemo(() => {
+    if (!watchHistory || watchHistory.length === 0) return [];
+    
+    const TMDB_GENRE_MAP = {
+      28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
+      99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
+      27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+      10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western",
+      10759: "Action & Adventure", 10765: "Sci-Fi & Fantasy", 10768: "War & Politics"
+    };
+
+    const historyGenres = new Set();
+    watchHistory.forEach(h => {
+      if (h.genre_ids && Array.isArray(h.genre_ids)) {
+        h.genre_ids.forEach(id => { if (TMDB_GENRE_MAP[id]) historyGenres.add(TMDB_GENRE_MAP[id].toLowerCase()); });
+      }
+      if (h.genres && Array.isArray(h.genres)) {
+        h.genres.forEach(g => { historyGenres.add((typeof g === 'string' ? g : g.name || '').toLowerCase()); });
+      }
+      const titleLookup = {
+        "Interstellar": ["science fiction", "drama", "adventure"],
+        "Inception": ["action", "science fiction", "adventure"],
+        "Stranger Things": ["drama", "sci-fi & fantasy", "mystery"],
+        "Dune: Part Two": ["science fiction", "adventure"],
+        "Oppenheimer": ["drama", "history"],
+        "The Dark Knight": ["action", "drama", "crime"],
+        "The Last of Us": ["drama", "action & adventure", "sci-fi & fantasy"],
+        "Breaking Bad": ["drama", "crime"]
+      };
+      if (titleLookup[h.title]) {
+        titleLookup[h.title].forEach(g => historyGenres.add(g));
+      }
+    });
+
+    if (historyGenres.size === 0) {
+      historyGenres.add("drama");
+      historyGenres.add("action");
+    }
+
+    const pool = [...trending, ...topRatedMovies, ...popularTV];
+    const scored = pool
+      .filter((item, idx, self) => 
+        item && item.id && self.findIndex(i => i.id === item.id) === idx &&
+        !watchHistory.some(h => h.id === item.id)
+      )
+      .map(item => {
+        const itemGenres = new Set();
+        if (item.genre_ids) {
+          item.genre_ids.forEach(id => { if (TMDB_GENRE_MAP[id]) itemGenres.add(TMDB_GENRE_MAP[id].toLowerCase()); });
+        }
+        if (item.genres) {
+          item.genres.forEach(g => itemGenres.add((typeof g === 'string' ? g : g.name || '').toLowerCase()));
+        }
+        
+        let overlap = 0;
+        historyGenres.forEach(hg => {
+          itemGenres.forEach(ig => {
+            if (ig.includes(hg) || hg.includes(ig)) overlap += 1;
+          });
+        });
+        
+        return { item, score: overlap * 10 + (item.vote_average || 0) * 2 };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(r => r.item);
+
+    return scored;
+  }, [watchHistory, trending, topRatedMovies, popularTV]);
+
   if (isLoading) {
     return <HeroSkeleton />;
   }
@@ -131,52 +201,6 @@ export default function Home() {
   const internationalCinema = trending.filter(item => item.original_language !== 'en');
 
   const continueWatching = watchHistory.slice(0, 10);
-
-  const genreOverlapRecommendations = useMemo(() => {
-    if (watchHistory.length === 0) return [];
-    const historyGenres = new Set();
-    watchHistory.forEach(h => {
-      const genres = {
-        "Interstellar": ["Science Fiction", "Drama", "Adventure"],
-        "Inception": ["Action", "Science Fiction", "Adventure"],
-        "Stranger Things": ["Drama", "Sci-Fi & Fantasy", "Mystery"],
-        "Dune: Part Two": ["Science Fiction", "Adventure"],
-        "Oppenheimer": ["Drama", "History"],
-        "The Dark Knight": ["Action", "Drama", "Crime"],
-        "The Last of Us": ["Drama", "Action & Adventure", "Sci-Fi & Fantasy"],
-        "Breaking Bad": ["Drama", "Crime"],
-        "Spider-Man: Across the Spider-Verse": ["Animation", "Action", "Adventure", "Science Fiction"],
-        "Arcane": ["Animation", "Sci-Fi & Fantasy", "Action & Adventure"],
-        "The Matrix": ["Action", "Science Fiction"],
-        "The Mandalorian": ["Action & Adventure", "Sci-Fi & Fantasy"],
-        "Spirited Away": ["Animation", "Family", "Fantasy"],
-        "Pulp Fiction": ["Thriller", "Crime"],
-        "Whiplash": ["Drama", "Music"],
-        "The Boys": ["Sci-Fi & Fantasy", "Action & Adventure", "Drama"],
-        "Gladiator": ["Action", "Drama", "Adventure"],
-        "Cyberpunk: Edgerunners": ["Animation", "Sci-Fi & Fantasy", "Action & Adventure"],
-        "Parasite": ["Comedy", "Thriller", "Drama"],
-        "Civil War": ["Action", "Drama", "War"]
-      };
-      (genres[h.title] || ['Drama']).forEach(g => historyGenres.add(g));
-    });
-
-    const pool = [...trending, ...topRatedMovies, ...popularTV];
-    const scored = pool
-      .filter(item => !watchHistory.some(h => h.id === item.id))
-      .map(item => {
-        const itemGenres = item.genres || [];
-        const overlap = [...historyGenres].filter(g =>
-          itemGenres.some(ig => ig.toLowerCase().includes(g.toLowerCase()) || g.toLowerCase().includes(ig.toLowerCase()))
-        ).length;
-        return { item, score: overlap * 10 + (item.vote_average || 0) * 2 };
-      })
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10)
-      .map(r => r.item);
-
-    return scored;
-  }, [watchHistory, trending, topRatedMovies, popularTV]);
 
   return (
     <div className="bg-[#0A0A0F] pb-10 overflow-hidden relative">
@@ -324,7 +348,7 @@ export default function Home() {
         <Carousel title="BECAUSE YOU WATCHED" items={genreOverlapRecommendations} />
       )}
 
-      <Carousel title="TRENDING NOW" items={trending} />
+      <Carousel title="TRENDING NOW" items={trending} showRank={true} />
       <Carousel title="TOP RATED MOVIES" items={topRatedMovies} />
       <Carousel title="POPULAR TV SHOWS" items={popularTV} />
 

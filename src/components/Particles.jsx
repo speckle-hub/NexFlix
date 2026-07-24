@@ -17,7 +17,7 @@ export default function Particles({ count = 30 }) {
 
     const resize = () => {
       w = canvas.width = window.innerWidth;
-      h = canvas.height = document.documentElement.scrollHeight;
+      h = canvas.height = window.innerHeight;
     };
     resize();
     window.addEventListener('resize', resize);

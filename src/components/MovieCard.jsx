@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 import useWatchlistStore from '../stores/watchlistStore';
 import useRatingsStore from '../stores/ratingsStore';
 
-export default function MovieCard({ item }) {
+export default function MovieCard({ item, rank }) {
   const { openQuickView } = useApp();
   const toggleWatchlist = useWatchlistStore(s => s.toggle);
   const isInList = useWatchlistStore(s => s.items.some(i => i.id === item.id));
@@ -23,9 +23,12 @@ export default function MovieCard({ item }) {
   const releaseYear = (isMovie ? item.release_date : item.first_air_date)?.split('-')[0] || 'N/A';
   const rating = item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : 'N/A';
   const popularity = item.popularity || 0;
+  const computedRank = item.trendingRank || item.rank || rank;
+  
   const socialBadge = item.tag || (
-    popularity > 150 ? '#3 Trending' :
-    popularity > 100 ? 'Trending' :
+    computedRank ? `#${computedRank} Trending` :
+    popularity > 150 ? 'Trending' :
+    popularity > 80 ? 'Popular' :
     rating !== 'N/A' && rating >= 8.5 ? 'Top Rated' : null
   );
 
